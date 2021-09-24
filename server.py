@@ -1,14 +1,16 @@
-#  coding: utf-8 
+#  coding: utf-8
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
-# 
+# Copyright 2021 Graeme Keates
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,11 +30,42 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
-    
+
     def handle(self):
+
+        # Receive data from client
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        
+        print(self.data)
+        # Check for empty response
+        # if len(self.data) == 0:
+        #     self.request.sendall(bytearray('HTTP/1.1 400 Bad Request\r\nConnection: close', 'utf-8'))
+        #     return
+        request = self.data.split() 
+        if (request[0].decode('utf-8')=='GET'):
+            requestPath = request[1].decode('utf-8')
+            path = './www' + requestPath
+            if (os.path.exists('./www/'+os.path.abspath(requestPath))):
+                fileName = 'index.html'
+                if(os.path.isdir(path)):
+                    if path[-1]=='/':
+                        path+=fileName
+                        file = open(path,"r")
+                        content = file.read()
+                        file.close()
+                        fileType = requestPath.split('.')[-1].strip()
+                        response = 'HTTP/1.1 200 OK\r\nContent-Type: text/{}\r\n\r\n{}'.format(fileType, content)
+                    else:
+                        path+='/'+fileName
+                        file = open(path,"r")
+                        content = file.read()
+                        file.close()
+                        response = 'HTTP/1.1 301 Moved Permanently\r\nLocation: {}/\r\n\r\n<html>\r\n<head><title>301 Moved Permanently</title></head>\r\n<body>\r\n<h1>Moved Permanently</h1>\r\n</body>\r\n</html>'.format(requestPath)
+        else:
+            response = 'HTTP/1.1 404 Not Found\r\n'
+        self.request.sendall(bytearray(response, 'utf-8'))
+
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
