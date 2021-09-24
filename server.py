@@ -61,6 +61,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         try:
             file = open(fileName,'r')
             content = file.read()
+            file.close()
 
 
         except OSError as e:
