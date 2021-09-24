@@ -58,16 +58,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     code = '301 Moved Permanently'
                     location = 'Location: '+path+'/\r\n'
                     fileName += '/index.html'
-        else:
-            code = '405 Method Not Allowed'
-            content = '<head><title>%s</title></head><h1>%s</h1>' % (code ,code)
-
-        if os.path.exists(fileName):
-            file =open(fileName, 'r')
+        try:
+            file = open(fileName,'r')
             content = file.read()
 
-        else:
-            code = '404 Not Found'
+
+        except OSError as e:
+            if method != 'GET':
+                code = '405 Method Not Allowed'
+            else:
+                code = '404 Not Found'
+            
             content = '<head><title>%s</title></head><h1>%s</h1>' % (code ,code)
 
         response = 'HTTP/1.1 {}\r\n{}Content-Type: {}\r\n\r\n{}\r\n'.format(code,location,fileType,content)
