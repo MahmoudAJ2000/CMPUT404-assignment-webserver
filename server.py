@@ -51,7 +51,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 fileType = 'text/css'
             
             elif os.path.exists(fileName) and not path.endswith('.html'):
-                
                 if fileName.endswith('/'):
                     fileName += 'index.html'
                 else:
@@ -62,14 +61,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
             file = open(fileName,'r')
             content = file.read()
             file.close()
-
-
         except OSError as e:
+            code = '404 Not Found'
             if method != 'GET':
-                code = '405 Method Not Allowed'
-            else:
-                code = '404 Not Found'
-            
+                code = '405 Method Not Allowed'            
             content = '<head><title>%s</title></head><h1>%s</h1>' % (code ,code)
 
         response = 'HTTP/1.1 {}\r\n{}Content-Type: {}\r\n\r\n{}\r\n'.format(code,location,fileType,content)
